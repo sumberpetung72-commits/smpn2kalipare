@@ -13,7 +13,7 @@
             max-width: 1100px; margin: 20px auto; background: #fff; padding: 25px; 
             border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); border-top: 5px solid #28a745; 
         }
-        .control-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .control-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
         .config-box { background: #fdfdfd; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; }
         .config-box strong { display: block; margin-bottom: 10px; color: #28a745; border-bottom: 1px solid #eee; padding-bottom: 5px; }
         
@@ -27,18 +27,13 @@
         .btn-upload { background-color: #007bff; }
         .btn-print { background-color: #333; }
 
-        /* Area Tampilan Rapor */
-        #printArea { background: #525659; padding: 20px 0; min-height: 100vh; }
-        
+        /* Tampilan Halaman Rapor (Kembali ke semula) */
         .rapor-page { 
-            width: 210mm; min-height: 297mm; margin: 0 auto 10mm auto; background: white; 
-            box-sizing: border-box; box-shadow: 0 0 15px rgba(0,0,0,0.5);
-            padding: 15mm 15mm 15mm 20mm; position: relative;
-            page-break-after: always;
+            width: 210mm; min-height: 297mm; margin: 10px auto; background: white; 
+            box-sizing: border-box; box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            padding: 15mm 15mm 15mm 20mm; position: relative; overflow: hidden;
         }
-        .rapor-page:last-child { margin-bottom: 0; page-break-after: avoid; }
 
-        /* Desain Rapor */
         .kop-container { display: flex; align-items: center; border-bottom: 3px double black; padding-bottom: 10px; margin-bottom: 15px; }
         .logo-box { width: 85px; height: 85px; display: flex; align-items: center; justify-content: center; }
         .logo-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
@@ -50,19 +45,17 @@
         .judul { text-align: center; margin-bottom: 15px; font-size: 14pt; font-weight: bold; text-decoration: underline; }
         .info-table { width: 100%; border: none; margin-bottom: 10px; font-size: 11pt; }
         .main-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; table-layout: fixed; }
-        .main-table th, .main-table td { border: 1px solid black; padding: 8px; font-size: 10pt; word-wrap: break-word; }
-        .main-table th { background-color: #f2f2f2; text-transform: uppercase; }
+        .main-table th, .main-table td { border: 1px solid black; padding: 8px; font-size: 10pt; word-wrap: break-word; vertical-align: middle; }
+        .main-table th { background-color: #f2f2f2; height: 35px; text-transform: uppercase; }
         
-        /* Area Tanda Tangan */
-        .footer-table { width: 100%; margin-top: 30px; border: none; text-align: center; font-size: 11pt; }
+        .footer-table { width: 100%; margin-top: 20px; border: none; text-align: center; font-size: 11pt; }
         .footer-table td { vertical-align: top; }
-        .space-ttd { height: 95px; } /* Ruang lega untuk stempel sekolah */
-
-        @media print {
-            .no-print { display: none; }
-            body { background: white; margin: 0; }
-            #printArea { background: white; padding: 0; }
-            .rapor-page { box-shadow: none; margin: 0; border: none; }
+        .space-ttd { height: 95px; } /* Jarak tanda tangan yang sudah diperbaiki */
+        
+        @media print { 
+            .no-print { display: none; } 
+            body { background: none; } 
+            .rapor-page { box-shadow: none; margin: 0; width: 100%; } 
         }
     </style>
 </head>
@@ -74,55 +67,121 @@
         <div class="config-box">
             <strong>📏 Pengaturan Margin (mm)</strong>
             <div class="margin-inputs">
-                <div><label>Atas</label><input type="number" id="mTop" value="15" oninput="updateStyles()"></div>
-                <div><label>Bawah</label><input type="number" id="mBottom" value="15" oninput="updateStyles()"></div>
-                <div><label>Kiri</label><input type="number" id="mLeft" value="20" oninput="updateStyles()"></div>
-                <div><label>Kanan</label><input type="number" id="mRight" value="15" oninput="updateStyles()"></div>
+                <div><label>Atas</label><input type="number" id="mTop" value="15" oninput="updateMargins()"></div>
+                <div><label>Bawah</label><input type="number" id="mBottom" value="15" oninput="updateMargins()"></div>
+                <div><label>Kiri</label><input type="number" id="mLeft" value="20" oninput="updateMargins()"></div>
+                <div><label>Kanan</label><input type="number" id="mRight" value="15" oninput="updateMargins()"></div>
             </div>
         </div>
         <div class="config-box">
-            <strong>📂 Kelola Data</strong>
-            <button class="btn btn-excel" style="width:100%" onclick="unduhTemplate()">Unduh Templat Excel</button>
-            <div class="btn-group">
-                <button class="btn btn-upload" onclick="document.getElementById('fileIn').click()">Unggah File Kelas</button>
-                <input type="file" id="fileIn" accept=".xlsx, .xls" style="display:none" onchange="prosesExcel(event)">
-            </div>
-        </div>
-        <div class="config-box">
-            <strong>👤 Navigasi & Cetak</strong>
-            <label>Pilih Tampilan:</label>
-            <select id="selectSiswa" onchange="tampilkanSiswa(this.value)">
-                <option value="">-- Unggah data dulu --</option>
+            <strong>👤 Manajemen Data & Navigasi</strong>
+            <label>Pilih Nama Siswa:</label>
+            <select id="selectSiswa" onchange="pilihSiswa(this.value)">
+                <option value="">-- Unggah file Excel dahulu --</option>
             </select>
             <div class="btn-group">
-                <button class="btn btn-print" onclick="window.print()">Cetak Tampilan Saat Ini</button>
+                <button class="btn btn-excel" onclick="unduhTemplate()">1. Unduh Templat</button>
+                <button class="btn btn-upload" onclick="document.getElementById('fileIn').click()">2. Unggah Excel</button>
+                <button class="btn btn-print" onclick="window.print()">3. Cetak Rapor</button>
             </div>
+            <input type="file" id="fileIn" accept=".xlsx, .xls" style="display:none" onchange="prosesExcel(event)">
         </div>
     </div>
 </div>
 
-<div id="printArea">
-    <div style="color: white; text-align: center; padding-top: 50px; font-style: italic;">
-        Silahkan unggah file Excel untuk menampilkan data rapor.
+<div class="rapor-page" id="raporContainer">
+    <div class="kop-container">
+        <div class="logo-box"><img id="imgLogo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Logo_Kabupaten_Malang_-_Seal_of_Malang_Regency.svg/1200px-Logo_Kabupaten_Malang_-_Seal_of_Malang_Regency.svg.png" alt="Logo"></div>
+        <div class="kop-text">
+            <h3>PEMERINTAH KABUPATEN MALANG</h3>
+            <h3>DINAS PENDIDIKAN</h3>
+            <h2>SMP NEGERI 2 KALIPARE</h2>
+            <p>Jl. Raya Banduarjo No. 1099 Sumberpetung Kec. Kalipare Kab. Malang (65166)</p>
+        </div>
     </div>
+
+    <div class="judul">LAPORAN HASIL BELAJAR MADRASAH DINIYAH</div>
+
+    <table class="info-table">
+        <tr>
+            <td width="18%">Nama Siswa</td><td width="2%">:</td>
+            <td id="outNama" width="40%" style="font-weight:bold; border-bottom:1px dotted #000">-</td>
+            <td width="20%">Semester</td><td width="2%">:</td><td>Ganjil</td>
+        </tr>
+        <tr>
+            <td>Kelas</td><td>:</td>
+            <td id="outKelas" style="border-bottom:1px dotted #000">-</td>
+            <td>Tahun Pelajaran</td><td>:</td><td>2025/2026</td>
+        </tr>
+    </table>
+
+    <table class="main-table">
+        <thead>
+            <tr>
+                <th width="7%">NO</th>
+                <th width="30%">MATA PELAJARAN</th>
+                <th width="13%">NILAI</th>
+                <th width="50%">CAPAIAN KOMPETENSI</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td align="center">1</td><td>FIQIH</td><td id="n1" align="center">-</td><td id="d1" style="font-size: 9pt;">-</td></tr>
+            <tr><td align="center">2</td><td>AQIDAH AKHLAQ</td><td id="n2" align="center">-</td><td id="d2" style="font-size: 9pt;">-</td></tr>
+            <tr><td align="center">3</td><td>BACA TULIS ALQURAN</td><td id="n3" align="center">-</td><td id="d3" style="font-size: 9pt;">-</td></tr>
+            <tr><td align="center">4</td><td>TAJWID</td><td id="n4" align="center">-</td><td id="d4" style="font-size: 9pt;">-</td></tr>
+            <tr style="background: #f9f9f9;">
+                <td colspan="2" align="right"><strong>JUMLAH</strong></td>
+                <td id="outTotal" align="center" style="font-weight:bold;">-</td>
+                <td id="descTotal" style="font-style: italic; font-size: 9pt;">-</td>
+            </tr>
+            <tr style="background: #f9f9f9;">
+                <td colspan="2" align="right"><strong>RATA-RATA</strong></td>
+                <td id="outRata" align="center" style="font-weight:bold;">-</td>
+                <td id="descRata" style="font-style: italic; font-size: 9pt;">-</td>
+            </tr>
+            <tr>
+                <td colspan="2" align="right"><strong>PERINGKAT</strong></td>
+                <td id="outRank" align="center" style="font-weight: bold; background: #fff9c4;">-</td>
+                <td style="background:#eee"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div style="display: flex; gap: 15px;">
+        <table class="main-table" style="width: 40%;">
+            <thead><tr><th width="20%">No</th><th>Ketidakhadiran</th><th width="30%">JUMLAH</th></tr></thead>
+            <tbody>
+                <tr><td align="center">1</td><td>Alpha</td><td id="a1" align="center">-</td></tr>
+                <tr><td align="center">2</td><td>Ijin</td><td id="a2" align="center">-</td></tr>
+                <tr><td align="center">3</td><td>Sakit</td><td id="a3" align="center">-</td></tr>
+            </tbody>
+        </table>
+        <table class="main-table" style="width: 60%;">
+            <thead><tr><th>Catatan Wali Kelas</th></tr></thead>
+            <tbody><tr><td id="outCatatan" style="height: 85px; vertical-align: top; font-size: 10pt;">-</td></tr></tbody>
+        </table>
+    </div>
+
+    <table class="footer-table">
+        <tr>
+            <td width="33%">Wali Murid<br><div class="space-ttd"></div>( ......................... )</td>
+            <td width="33%">Wali Kelas<br><div class="space-ttd"></div><strong id="outWali">( ......................... )</strong></td>
+            <td>Kalipare, 19 Desember 2025<br>Kepala Sekolah<br>
+                <div class="space-ttd"></div>
+                <strong><u>ELISABET DWI BUDIATI, S.Pd</u></strong><br>NIP. 197507312002122005
+            </td>
+        </tr>
+    </table>
 </div>
 
 <script>
     let dataSiswaGlobal = [];
-    let urlLogo = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Logo_Kabupaten_Malang_-_Seal_of_Malang_Regency.svg/1200px-Logo_Kabupaten_Malang_-_Seal_of_Malang_Regency.svg.png";
-
-    function updateStyles() {
-        const t = document.getElementById('mTop').value, b = document.getElementById('mBottom').value,
-              l = document.getElementById('mLeft').value, r = document.getElementById('mRight').value;
-        const pages = document.querySelectorAll('.rapor-page');
-        pages.forEach(p => p.style.padding = `${t}mm ${r}mm ${b}mm ${l}mm`);
-    }
 
     function unduhTemplate() {
         const columns = ["Nama_Siswa", "Kelas", "Wali_Kelas", "Fiqih", "Aqidah", "BTQ", "Tajwid", "Alpha", "Ijin", "Sakit", "Catatan"];
-        const ws = XLSX.utils.aoa_to_sheet([["DATA RAPOR MADIN - SMPN 2 KALIPARE"], ["Mulai isi data di baris ke-4"], [], columns, ["Contoh Nama", "7-A", "Nama Wali Kelas", 85, 90, 80, 88, 0, 0, 0, "Pertahankan prestasimu"]]);
+        const ws = XLSX.utils.aoa_to_sheet([["DATA RAPOR MADIN"], [], [], columns, ["Contoh Nama", "7-A", "Wali Kelas", 90, 85, 88, 82, 0, 0, 0, "Pertahankan prestasimu!"]]);
         const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data");
-        XLSX.writeFile(wb, "Templat_Rapor_Madin.xlsx");
+        XLSX.writeFile(wb, "Templat_Rapor.xlsx");
     }
 
     function terbilang(n) {
@@ -154,6 +213,13 @@
         return `Perlu bimbingan intensif untuk mencapai kompetensi dasar pada materi ${m}.`;
     }
 
+    function updateMargins() {
+        const t = document.getElementById('mTop').value, b = document.getElementById('mBottom').value,
+              l = document.getElementById('mLeft').value, r = document.getElementById('mRight').value;
+        const page = document.getElementById('raporContainer');
+        page.style.padding = `${t}mm ${r}mm ${b}mm ${l}mm`;
+    }
+
     function prosesExcel(e) {
         const reader = new FileReader();
         reader.onload = (event) => {
@@ -165,77 +231,35 @@
             });
             const sorted = [...json].sort((a, b) => b.total - a.total);
             dataSiswaGlobal = json.map(s => ({ ...s, rank: sorted.findIndex(x => x.total === s.total) + 1 }));
-            
             const sel = document.getElementById('selectSiswa');
-            sel.innerHTML = `<option value="ALL">-- CETAK SEMUA SISWA --</option>` + dataSiswaGlobal.map((s, i) => `<option value="${i}">${s.Nama_Siswa}</option>`).join('');
-            tampilkanSiswa("ALL");
+            sel.innerHTML = dataSiswaGlobal.map((s, i) => `<option value="${i}">${s.Nama_Siswa}</option>`).join('');
+            isiData(dataSiswaGlobal[0]);
         };
         reader.readAsArrayBuffer(e.target.files[0]);
     }
 
-    function buatHTMLRapor(d) {
-        const rata = (d.total / 4).toFixed(2);
-        return `
-        <div class="rapor-page">
-            <div class="kop-container">
-                <div class="logo-box"><img src="${urlLogo}"></div>
-                <div class="kop-text">
-                    <h3>PEMERINTAH KABUPATEN MALANG</h3>
-                    <h3>DINAS PENDIDIKAN</h3>
-                    <h2>SMP NEGERI 2 KALIPARE</h2>
-                    <p>Jl. Raya Banduarjo No. 1099 Sumberpetung Kec. Kalipare Kab. Malang (65166)</p>
-                </div>
-            </div>
-            <div class="judul">LAPORAN HASIL BELAJAR MADRASAH DINIYAH</div>
-            <table class="info-table">
-                <tr><td width="18%">Nama Siswa</td><td width="2%">:</td><td width="40%"><b>${d.Nama_Siswa}</b></td><td width="18%">Semester</td><td>: Ganjil</td></tr>
-                <tr><td>Kelas</td><td>:</td><td>${d.Kelas}</td><td>Tahun Pelajaran</td><td>: 2025/2026</td></tr>
-            </table>
-            <table class="main-table">
-                <thead><tr><th width="7%">NO</th><th width="30%">MATA PELAJARAN</th><th width="13%">NILAI</th><th>CAPAIAN KOMPETENSI</th></tr></thead>
-                <tbody>
-                    <tr><td align="center">1</td><td>FIQIH</td><td align="center">${d.Fiqih}</td><td style="font-size:9pt">${genKompetensi(d.Fiqih, 'Fiqih')}</td></tr>
-                    <tr><td align="center">2</td><td>AQIDAH AKHLAQ</td><td align="center">${d.Aqidah}</td><td style="font-size:9pt">${genKompetensi(d.Aqidah, 'Aqidah')}</td></tr>
-                    <tr><td align="center">3</td><td>BACA TULIS ALQURAN</td><td align="center">${d.BTQ}</td><td style="font-size:9pt">${genKompetensi(d.BTQ, 'BTQ')}</td></tr>
-                    <tr><td align="center">4</td><td>TAJWID</td><td align="center">${d.Tajwid}</td><td style="font-size:9pt">${genKompetensi(d.Tajwid, 'Tajwid')}</td></tr>
-                    <tr style="background:#f9f9f9"><td colspan="2" align="right"><b>JUMLAH</b></td><td align="center"><b>${d.total}</b></td><td style="font-size:8pt; font-style:italic">${terbilang(d.total)}</td></tr>
-                    <tr style="background:#f9f9f9"><td colspan="2" align="right"><b>RATA-RATA</b></td><td align="center"><b>${rata}</b></td><td style="font-size:8pt; font-style:italic">${terbilang(rata)}</td></tr>
-                    <tr><td colspan="2" align="right"><b>PERINGKAT</b></td><td align="center" style="background:#fff9c4"><b>${d.rank}</b></td><td style="font-size:9pt">Dari ${dataSiswaGlobal.length} Siswa</td></tr>
-                </tbody>
-            </table>
-            <div style="display:flex; gap:15px">
-                <table class="main-table" style="width:40%">
-                    <thead><tr><th>No</th><th>Ketidakhadiran</th><th>Jumlah</th></tr></thead>
-                    <tr><td align="center">1</td><td>Alpha</td><td align="center">${d.Alpha || 0} hari</td></tr>
-                    <tr><td align="center">2</td><td>Ijin</td><td align="center">${d.Ijin || 0} hari</td></tr>
-                    <tr><td align="center">3</td><td>Sakit</td><td align="center">${d.Sakit || 0} hari</td></tr>
-                </table>
-                <table class="main-table" style="width:60%">
-                    <thead><tr><th>Catatan Wali Kelas</th></tr></thead>
-                    <tr><td style="height:85px; vertical-align:top; font-size:10pt">${d.Catatan || '-'}</td></tr>
-                </table>
-            </div>
-            <table class="footer-table">
-                <tr>
-                    <td width="33%">Wali Murid<br><div class="space-ttd"></div>( ......................... )</td>
-                    <td width="33%">Wali Kelas<br><div class="space-ttd"></div><strong>( ${d.Wali_Kelas} )</strong></td>
-                    <td>Kalipare, 19 Desember 2025<br>Kepala Sekolah<br>
-                        <div class="space-ttd"></div>
-                        <strong><u>ELISABET DWI BUDIATI, S.Pd</u></strong><br>NIP. 197507312002122005
-                    </td>
-                </tr>
-            </table>
-        </div>`;
-    }
+    function pilihSiswa(i) { if(i !== "") isiData(dataSiswaGlobal[i]); }
 
-    function tampilkanSiswa(idx) {
-        const area = document.getElementById('printArea');
-        if(idx === "ALL") {
-            area.innerHTML = dataSiswaGlobal.map(s => buatHTMLRapor(s)).join('');
-        } else if(idx !== "") {
-            area.innerHTML = buatHTMLRapor(dataSiswaGlobal[idx]);
-        }
-        updateStyles();
+    function isiData(d) {
+        document.getElementById('outNama').innerText = d.Nama_Siswa;
+        document.getElementById('outKelas').innerText = d.Kelas;
+        document.getElementById('outWali').innerText = `( ${d.Wali_Kelas} )`;
+        const n = [d.Fiqih, d.Aqidah, d.BTQ, d.Tajwid];
+        const names = ["Fiqih", "Aqidah Akhlaq", "BTQ", "Tajwid"];
+        n.forEach((v, i) => {
+            document.getElementById(`n${i+1}`).innerText = v || 0;
+            document.getElementById(`d${i+1}`).innerText = genKompetensi(v, names[i]);
+        });
+        const rata = (d.total / 4).toFixed(2);
+        document.getElementById('outTotal').innerText = d.total;
+        document.getElementById('descTotal').innerText = terbilang(d.total);
+        document.getElementById('outRata').innerText = rata;
+        document.getElementById('descRata').innerText = terbilang(rata);
+        document.getElementById('outRank').innerText = `${d.rank} dari ${dataSiswaGlobal.length}`;
+        document.getElementById('a1').innerText = (d.Alpha || 0) + " hari";
+        document.getElementById('a2').innerText = (d.Ijin || 0) + " hari";
+        document.getElementById('a3').innerText = (d.Sakit || 0) + " hari";
+        document.getElementById('outCatatan').innerText = d.Catatan || "-";
     }
 </script>
 </body>
