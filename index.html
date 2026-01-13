@@ -11,11 +11,11 @@
         /* Panel Kontrol */
         .no-print { 
             max-width: 1100px; margin: 20px auto; background: #fff; padding: 25px; 
-            border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); border-top: 5px solid #dc3545; 
+            border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); border-top: 5px solid #28a745; 
         }
         .control-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
         .config-box { background: #fdfdfd; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; }
-        .config-box strong { display: block; margin-bottom: 10px; color: #dc3545; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .config-box strong { display: block; margin-bottom: 10px; color: #28a745; border-bottom: 1px solid #eee; padding-bottom: 5px; }
         
         .margin-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .margin-inputs label { font-size: 11px; font-weight: bold; }
@@ -25,7 +25,7 @@
         .btn { flex: 1; padding: 12px; cursor: pointer; border: none; border-radius: 6px; font-weight: bold; color: white; transition: 0.3s; font-size: 13px; text-align: center; }
         .btn-excel { background-color: #1D6F42; }
         .btn-upload { background-color: #007bff; }
-        .btn-print-all { background-color: #dc3545; }
+        .btn-print { background-color: #333; }
 
         /* Area Tampilan Rapor */
         #printArea { background: #525659; padding: 20px 0; min-height: 100vh; }
@@ -56,7 +56,7 @@
         /* Area Tanda Tangan */
         .footer-table { width: 100%; margin-top: 30px; border: none; text-align: center; font-size: 11pt; }
         .footer-table td { vertical-align: top; }
-        .space-ttd { height: 90px; } /* Ruang tanda tangan dan stempel */
+        .space-ttd { height: 95px; } /* Ruang lega untuk stempel sekolah */
 
         @media print {
             .no-print { display: none; }
@@ -87,16 +87,15 @@
                 <button class="btn btn-upload" onclick="document.getElementById('fileIn').click()">Unggah File Kelas</button>
                 <input type="file" id="fileIn" accept=".xlsx, .xls" style="display:none" onchange="prosesExcel(event)">
             </div>
-            <label style="margin-top:10px; display:block">Tampilkan Siswa:</label>
-            <select id="selectSiswa" onchange="tampilkanSatuSiswa(this.value)">
-                <option value="">-- Unggah data dulu --</option>
-            </select>
         </div>
         <div class="config-box">
-            <strong>🖨️ Opsi Cetak</strong>
-            <p style="font-size:11px; color:#666">Klik tombol di bawah untuk menyiapkan semua rapor ke printer.</p>
+            <strong>👤 Navigasi & Cetak</strong>
+            <label>Pilih Tampilan:</label>
+            <select id="selectSiswa" onchange="tampilkanSiswa(this.value)">
+                <option value="">-- Unggah data dulu --</option>
+            </select>
             <div class="btn-group">
-                <button class="btn btn-print-all" onclick="window.print()">Cetak Semua yang Tampil</button>
+                <button class="btn btn-print" onclick="window.print()">Cetak Tampilan Saat Ini</button>
             </div>
         </div>
     </div>
@@ -110,7 +109,6 @@
 
 <script>
     let dataSiswaGlobal = [];
-    // Logo Kabupaten Malang
     let urlLogo = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Logo_Kabupaten_Malang_-_Seal_of_Malang_Regency.svg/1200px-Logo_Kabupaten_Malang_-_Seal_of_Malang_Regency.svg.png";
 
     function updateStyles() {
@@ -152,7 +150,7 @@
         if (!v) return "-";
         if (v >= 90) return `Sangat Baik. Peserta didik menunjukkan penguasaan sangat mendalam pada kompetensi materi ${m}.`;
         if (v >= 80) return `Baik. Sudah menguasai sebagian besar kompetensi ${m} dengan memuaskan.`;
-        if (v >= 70) return `Cukup. Memiliki pemahaman kompetensi dasar pada ${m}, perlu sedikit peningkatan praktik.`;
+        if (v >= 70) return `Cukup. Memiliki pemahaman kompetensi dasar pada ${m}, perlu peningkatan praktik.`;
         return `Perlu bimbingan intensif untuk mencapai kompetensi dasar pada materi ${m}.`;
     }
 
@@ -170,7 +168,7 @@
             
             const sel = document.getElementById('selectSiswa');
             sel.innerHTML = `<option value="ALL">-- CETAK SEMUA SISWA --</option>` + dataSiswaGlobal.map((s, i) => `<option value="${i}">${s.Nama_Siswa}</option>`).join('');
-            tampilkanSemuaSiswa();
+            tampilkanSiswa("ALL");
         };
         reader.readAsArrayBuffer(e.target.files[0]);
     }
@@ -214,7 +212,7 @@
                 </table>
                 <table class="main-table" style="width:60%">
                     <thead><tr><th>Catatan Wali Kelas</th></tr></thead>
-                    <tr><td style="height:82px; vertical-align:top; font-size:10pt">${d.Catatan || '-'}</td></tr>
+                    <tr><td style="height:85px; vertical-align:top; font-size:10pt">${d.Catatan || '-'}</td></tr>
                 </table>
             </div>
             <table class="footer-table">
@@ -230,15 +228,13 @@
         </div>`;
     }
 
-    function tampilkanSemuaSiswa() {
-        document.getElementById('printArea').innerHTML = dataSiswaGlobal.map(s => buatHTMLRapor(s)).join('');
-        updateStyles();
-    }
-
-    function tampilkanSatuSiswa(idx) {
-        if(idx === "ALL") { tampilkanSemuaSiswa(); return; }
-        if(idx === "") return;
-        document.getElementById('printArea').innerHTML = buatHTMLRapor(dataSiswaGlobal[idx]);
+    function tampilkanSiswa(idx) {
+        const area = document.getElementById('printArea');
+        if(idx === "ALL") {
+            area.innerHTML = dataSiswaGlobal.map(s => buatHTMLRapor(s)).join('');
+        } else if(idx !== "") {
+            area.innerHTML = buatHTMLRapor(dataSiswaGlobal[idx]);
+        }
         updateStyles();
     }
 </script>
