@@ -7,181 +7,98 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Times New Roman', Times, serif; margin: 0; background-color: #f0f2f5; color: #333; }
-        .no-print { max-width: 1100px; margin: 20px auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); border-top: 5px solid #28a745; }
-        .control-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+        .no-print { max-width: 1100px; margin: 20px auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); border-top: 5px solid #dc3545; }
+        .control-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
         .config-box { background: #fdfdfd; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; }
-        .config-box strong { display: block; margin-bottom: 10px; color: #28a745; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .config-box strong { display: block; margin-bottom: 10px; color: #dc3545; border-bottom: 1px solid #eee; padding-bottom: 5px; }
         .margin-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .margin-inputs label { font-size: 11px; font-weight: bold; }
         .config-box input, .config-box select { width: 100%; padding: 8px; margin-bottom: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        
         .btn-group { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
         .btn { flex: 1; padding: 12px; cursor: pointer; border: none; border-radius: 6px; font-weight: bold; color: white; transition: 0.3s; font-size: 13px; text-align: center; }
         .btn-excel { background-color: #1D6F42; }
-        .btn-logo { background-color: #6f42c1; }
         .btn-upload { background-color: #007bff; }
-        .btn-print { background-color: #333; }
+        .btn-print-one { background-color: #6c757d; }
+        .btn-print-all { background-color: #dc3545; }
         .btn:hover { opacity: 0.8; transform: translateY(-1px); }
 
-        /* Tampilan Rapor A4 */
+        /* Area Cetak */
+        #printArea { background: #525659; padding: 20px 0; }
         .rapor-page { 
-            width: 210mm; min-height: 297mm; margin: 10px auto; background: white; 
-            box-sizing: border-box; box-shadow: 0 0 10px rgba(0,0,0,0.2);
-            padding: 15mm 15mm 15mm 20mm; position: relative; overflow: hidden;
+            width: 210mm; min-height: 297mm; margin: 0 auto 10mm auto; background: white; 
+            box-sizing: border-box; box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            padding: 15mm 15mm 15mm 20mm; position: relative;
+            page-break-after: always; /* Membuat halaman baru tiap siswa saat cetak */
         }
+        .rapor-page:last-child { margin-bottom: 0; page-break-after: avoid; }
 
+        /* Elemen Rapor */
         .kop-container { display: flex; align-items: center; border-bottom: 3px double black; padding-bottom: 10px; margin-bottom: 15px; }
         .logo-box { width: 85px; height: 85px; display: flex; align-items: center; justify-content: center; }
         .logo-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
         .kop-text { flex: 1; text-align: center; }
-        .kop-text h3 { margin: 1px 0; font-size: 14pt; text-transform: uppercase; }
-        .kop-text h2 { margin: 1px 0; font-size: 16pt; text-transform: uppercase; }
-        .kop-text p { margin: 1px 0; font-size: 10pt; font-style: italic; }
-
+        .kop-text h3 { margin: 1px 0; font-size: 14pt; }
+        .kop-text h2 { margin: 1px 0; font-size: 16pt; }
         .judul { text-align: center; margin-bottom: 15px; font-size: 14pt; font-weight: bold; text-decoration: underline; }
         .info-table { width: 100%; border: none; margin-bottom: 10px; font-size: 11pt; }
         .main-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; table-layout: fixed; }
-        .main-table th, .main-table td { border: 1px solid black; padding: 8px; font-size: 10pt; word-wrap: break-word; vertical-align: middle; }
-        .main-table th { background-color: #f2f2f2; height: 35px; text-transform: uppercase; }
-        
-        .footer-table { width: 100%; margin-top: 20px; border: none; text-align: center; font-size: 11pt; }
-        
-        @media print { .no-print { display: none; } body { background: none; } .rapor-page { box-shadow: none; margin: 0; width: 100%; } }
+        .main-table th, .main-table td { border: 1px solid black; padding: 6px; font-size: 10pt; }
+        .main-table th { background-color: #f2f2f2; }
+        .footer-table { width: 100%; margin-top: 20px; text-align: center; font-size: 11pt; }
+
+        @media print {
+            .no-print { display: none; }
+            body { background: white; margin: 0; }
+            #printArea { background: white; padding: 0; }
+            .rapor-page { box-shadow: none; margin: 0; width: 210mm; height: 297mm; border: none; }
+        }
     </style>
 </head>
 <body>
 
 <div class="no-print">
-    <h3>🚀 Sistem Administrasi Rapor Madin - SMPN 2 Kalipare</h3>
+    <h3>🖨️ Panel Cetak Massal Rapor Madin</h3>
     <div class="control-grid">
         <div class="config-box">
-            <strong>📏 Pengaturan Margin (mm)</strong>
+            <strong>📏 Atur Margin (mm)</strong>
             <div class="margin-inputs">
-                <div><label>Atas</label><input type="number" id="mTop" value="15" oninput="updateMargins()"></div>
-                <div><label>Bawah</label><input type="number" id="mBottom" value="15" oninput="updateMargins()"></div>
-                <div><label>Kiri</label><input type="number" id="mLeft" value="20" oninput="updateMargins()"></div>
-                <div><label>Kanan</label><input type="number" id="mRight" value="15" oninput="updateMargins()"></div>
+                <div><label>Atas</label><input type="number" id="mTop" value="15" oninput="updateStyles()"></div>
+                <div><label>Bawah</label><input type="number" id="mBottom" value="15" oninput="updateStyles()"></div>
+                <div><label>Kiri</label><input type="number" id="mLeft" value="20" oninput="updateStyles()"></div>
+                <div><label>Kanan</label><input type="number" id="mRight" value="15" oninput="updateStyles()"></div>
             </div>
         </div>
         <div class="config-box">
-            <strong>👤 Manajemen Data & Navigasi</strong>
-            <label>Pilih Nama Siswa:</label>
-            <select id="selectSiswa" onchange="pilihSiswa(this.value)">
-                <option value="">-- Unggah file Excel dahulu --</option>
-            </select>
+            <strong>📂 Kelola Data</strong>
+            <button class="btn btn-excel" style="width:100%" onclick="unduhTemplate()">Unduh Templat Excel</button>
             <div class="btn-group">
-                <button class="btn btn-excel" onclick="unduhTemplate()">1. Unduh Templat</button>
-                <button class="btn btn-logo" onclick="document.getElementById('logoIn').click()">2. Ganti Logo</button>
-                <button class="btn btn-upload" onclick="document.getElementById('fileIn').click()">3. Unggah Excel</button>
-                <button class="btn btn-print" onclick="window.print()">4. Cetak Rapor</button>
+                <button class="btn btn-upload" onclick="document.getElementById('fileIn').click()">Unggah File Kelas</button>
+                <input type="file" id="fileIn" accept=".xlsx, .xls" style="display:none" onchange="prosesExcel(event)">
             </div>
-            <input type="file" id="logoIn" accept="image/*" style="display:none" onchange="prosesLogo(event)">
-            <input type="file" id="fileIn" accept=".xlsx, .xls" style="display:none" onchange="prosesExcel(event)">
+            <label style="margin-top:10px; display:block">Tampilkan Siswa:</label>
+            <select id="selectSiswa" onchange="tampilkanSatuSiswa(this.value)">
+                <option value="">-- Unggah data dulu --</option>
+            </select>
+        </div>
+        <div class="config-box">
+            <strong>🖨️ Opsi Cetak</strong>
+            <p style="font-size:12px; color:#666">Pilih "Cetak Semua" untuk mencetak satu kelas sekaligus.</p>
+            <div class="btn-group">
+                <button class="btn btn-print-one" onclick="window.print()">Cetak Tampilan</button>
+                <button class="btn btn-print-all" onclick="tampilkanSemuaSiswa()">Siapkan Cetak Semua</button>
+            </div>
         </div>
     </div>
 </div>
 
-<div class="rapor-page" id="raporContainer">
-    <div class="kop-container">
-        <div class="logo-box"><img id="imgLogo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Logo_Kabupaten_Malang_-_Seal_of_Malang_Regency.svg/1200px-Logo_Kabupaten_Malang_-_Seal_of_Malang_Regency.svg.png" alt="Logo"></div>
-        <div class="kop-text">
-            <h3>PEMERINTAH KABUPATEN MALANG</h3>
-            <h3>DINAS PENDIDIKAN</h3>
-            <h2>SMP NEGERI 2 KALIPARE</h2>
-            <p>Jl. Raya Banduarjo No. 1099 Sumberpetung Kec. Kalipare Kab. Malang (65166)</p>
-        </div>
+<div id="printArea">
     </div>
-
-    <div class="judul">LAPORAN HASIL BELAJAR MADRASAH DINIYAH</div>
-
-    <table class="info-table">
-        <tr>
-            <td width="18%">Nama Siswa</td><td width="2%">:</td>
-            <td id="outNama" width="40%" style="font-weight:bold; border-bottom:1px dotted #000">-</td>
-            <td width="20%">Semester</td><td width="2%">:</td><td>Ganjil</td>
-        </tr>
-        <tr>
-            <td>Kelas</td><td>:</td>
-            <td id="outKelas" style="border-bottom:1px dotted #000">-</td>
-            <td>Tahun Pelajaran</td><td>:</td><td>2025/2026</td>
-        </tr>
-    </table>
-
-    <table class="main-table">
-        <thead>
-            <tr>
-                <th width="7%">NO</th>
-                <th width="30%">MATA PELAJARAN</th>
-                <th width="13%">NILAI</th>
-                <th width="50%">CAPAIAN KOMPETENSI</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr><td align="center">1</td><td>FIQIH</td><td id="n1" align="center">-</td><td id="d1" style="font-size: 9pt;">-</td></tr>
-            <tr><td align="center">2</td><td>AQIDAH AKHLAQ</td><td id="n2" align="center">-</td><td id="d2" style="font-size: 9pt;">-</td></tr>
-            <tr><td align="center">3</td><td>BACA TULIS ALQURAN</td><td id="n3" align="center">-</td><td id="d3" style="font-size: 9pt;">-</td></tr>
-            <tr><td align="center">4</td><td>TAJWID</td><td id="n4" align="center">-</td><td id="d4" style="font-size: 9pt;">-</td></tr>
-            <tr style="background: #f9f9f9;">
-                <td colspan="2" align="right"><strong>JUMLAH</strong></td>
-                <td id="outTotal" align="center" style="font-weight:bold;">-</td>
-                <td id="descTotal" style="font-style: italic; font-size: 9pt;">-</td>
-            </tr>
-            <tr style="background: #f9f9f9;">
-                <td colspan="2" align="right"><strong>RATA-RATA</strong></td>
-                <td id="outRata" align="center" style="font-weight:bold;">-</td>
-                <td id="descRata" style="font-style: italic; font-size: 9pt;">-</td>
-            </tr>
-            <tr>
-                <td colspan="2" align="right"><strong>PERINGKAT</strong></td>
-                <td id="outRank" align="center" style="font-weight: bold; background: #fff9c4;">-</td>
-                <td style="background:#eee"></td>
-            </tr>
-        </tbody>
-    </table>
-
-    <div style="display: flex; gap: 15px;">
-        <table class="main-table" style="width: 40%;">
-            <thead><tr><th width="20%">No</th><th>Ketidakhadiran</th><th width="30%">JUMLAH</th></tr></thead>
-            <tbody>
-                <tr><td align="center">1</td><td>Alpha</td><td id="a1" align="center">-</td></tr>
-                <tr><td align="center">2</td><td>Ijin</td><td id="a2" align="center">-</td></tr>
-                <tr><td align="center">3</td><td>Sakit</td><td id="a3" align="center">-</td></tr>
-            </tbody>
-        </table>
-        <table class="main-table" style="width: 60%;">
-            <thead><tr><th>Catatan Wali Kelas</th></tr></thead>
-            <tbody><tr><td id="outCatatan" style="height: 85px; vertical-align: top; font-size: 10pt;">-</td></tr></tbody>
-        </table>
-    </div>
-
-    <table class="footer-table">
-        <tr>
-            <td width="33%">Wali Murid<br><br><br><br>( ......................... )</td>
-            <td width="33%">Wali Kelas<br><br><br><br><strong id="outWali">( ......................... )</strong></td>
-            <td>Kalipare, 19 Desember 2025<br>Kepala Sekolah<br><br><br><strong><u>ELISABET DWI BUDIATI, S.Pd</u></strong><br>NIP. 197507312002122005</td>
-        </tr>
-    </table>
-</div>
 
 <script>
     let dataSiswaGlobal = [];
+    let urlLogo = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Logo_Kabupaten_Malang_-_Seal_of_Malang_Regency.svg/1200px-Logo_Kabupaten_Malang_-_Seal_of_Malang_Regency.svg.png";
 
-    // FUNGSI UNDUH TEMPLAT
-    function unduhTemplate() {
-        const columns = ["Nama_Siswa", "Kelas", "Wali_Kelas", "Fiqih", "Aqidah", "BTQ", "Tajwid", "Alpha", "Ijin", "Sakit", "Catatan"];
-        const data = [
-            ["PENGISIAN DATA RAPOR MADIN"],
-            ["Jangan mengubah kolom di baris ke-3"],
-            [],
-            columns,
-            ["Contoh Nama Siswa", "7-A", "Wali Kelas, S.Pd", 90, 85, 88, 82, 0, 0, 0, "Pertahankan prestasimu!"]
-        ];
-        const ws = XLSX.utils.aoa_to_sheet(data);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Data");
-        XLSX.writeFile(wb, "Templat_Rapor_Madin_SMPN2.xlsx");
-    }
-
-    // FUNGSI TERBILANG
     function terbilang(n) {
         const bilangan = ["", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas"];
         let temp = ""; n = parseFloat(n);
@@ -203,70 +120,109 @@
         return temp.trim() + " Poin";
     }
 
-    // FUNGSI CAPAIAN KOMPETENSI
     function genKompetensi(v, m) {
         if (!v) return "-";
-        if (v >= 90) return `Sangat Baik. Peserta didik menunjukkan penguasaan sangat mendalam pada kompetensi materi ${m}. Perlu tantangan lebih lanjut.`;
-        if (v >= 80) return `Baik. Sudah menguasai sebagian besar kompetensi ${m} dengan memuaskan, namun perlu ketelitian pada detail materi.`;
-        if (v >= 70) return `Cukup. Memiliki pemahaman kompetensi dasar pada ${m}, namun aplikasi praktik belum tercapai secara maksimal.`;
-        return `Perlu bimbingan intensif untuk mencapai kompetensi dasar pada materi ${m}.`;
+        if (v >= 90) return `Sangat Baik. Menunjukkan penguasaan mendalam pada kompetensi ${m}.`;
+        if (v >= 80) return `Baik. Sudah menguasai kompetensi ${m}, namun perlu sedikit ketelitian.`;
+        if (v >= 70) return `Cukup. Pemahaman dasar ${m} tercapai, namun praktik belum maksimal.`;
+        return `Perlu bimbingan khusus pada materi ${m}.`;
     }
 
-    // LOGIKA UI
-    function updateMargins() {
+    function updateStyles() {
         const t = document.getElementById('mTop').value, b = document.getElementById('mBottom').value,
               l = document.getElementById('mLeft').value, r = document.getElementById('mRight').value;
-        const page = document.getElementById('raporContainer');
-        page.style.padding = `${t}mm ${r}mm ${b}mm ${l}mm`;
+        const pages = document.querySelectorAll('.rapor-page');
+        pages.forEach(p => p.style.padding = `${t}mm ${r}mm ${b}mm ${l}mm`);
     }
 
-    function prosesLogo(e) {
-        const reader = new FileReader();
-        reader.onload = f => { document.getElementById('imgLogo').src = f.target.result; };
-        reader.readAsDataURL(e.target.files[0]);
+    function unduhTemplate() {
+        const columns = ["Nama_Siswa", "Kelas", "Wali_Kelas", "Fiqih", "Aqidah", "BTQ", "Tajwid", "Alpha", "Ijin", "Sakit", "Catatan"];
+        const ws = XLSX.utils.aoa_to_sheet([["DATA RAPOR MADIN"], [], columns, ["Siswa 1", "7-A", "Guru A", 90, 80, 70, 85, 0, 0, 0, "Baik"]]);
+        const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data");
+        XLSX.writeFile(wb, "Templat_Rapor.xlsx");
     }
 
     function prosesExcel(e) {
         const reader = new FileReader();
         reader.onload = (event) => {
             const wb = XLSX.read(new Uint8Array(event.target.result), {type: 'array'});
-            let json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {range: 3});
+            let json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {range: 2});
             json = json.filter(s => s.Nama_Siswa).map(s => {
                 const tot = (parseFloat(s.Fiqih) || 0) + (parseFloat(s.Aqidah) || 0) + (parseFloat(s.BTQ) || 0) + (parseFloat(s.Tajwid) || 0);
                 return { ...s, total: tot };
             });
             const sorted = [...json].sort((a, b) => b.total - a.total);
             dataSiswaGlobal = json.map(s => ({ ...s, rank: sorted.findIndex(x => x.total === s.total) + 1 }));
+            
             const sel = document.getElementById('selectSiswa');
-            sel.innerHTML = dataSiswaGlobal.map((s, i) => `<option value="${i}">${s.Nama_Siswa}</option>`).join('');
-            isiData(dataSiswaGlobal[0]);
-            alert("Data berhasil dimuat!");
+            sel.innerHTML = `<option value="ALL">-- SEMUA SISWA --</option>` + dataSiswaGlobal.map((s, i) => `<option value="${i}">${s.Nama_Siswa}</option>`).join('');
+            tampilkanSemuaSiswa();
         };
         reader.readAsArrayBuffer(e.target.files[0]);
     }
 
-    function pilihSiswa(i) { if(i !== "") isiData(dataSiswaGlobal[i]); }
-
-    function isiData(d) {
-        document.getElementById('outNama').innerText = d.Nama_Siswa;
-        document.getElementById('outKelas').innerText = d.Kelas;
-        document.getElementById('outWali').innerText = `( ${d.Wali_Kelas} )`;
-        const n = [d.Fiqih, d.Aqidah, d.BTQ, d.Tajwid];
-        const names = ["Fiqih", "Aqidah Akhlaq", "BTQ", "Tajwid"];
-        n.forEach((v, i) => {
-            document.getElementById(`n${i+1}`).innerText = v || 0;
-            document.getElementById(`d${i+1}`).innerText = genKompetensi(v, names[i]);
-        });
+    function buatHTMLRapor(d) {
         const rata = (d.total / 4).toFixed(2);
-        document.getElementById('outTotal').innerText = d.total;
-        document.getElementById('descTotal').innerText = terbilang(d.total);
-        document.getElementById('outRata').innerText = rata;
-        document.getElementById('descRata').innerText = terbilang(rata);
-        document.getElementById('outRank').innerText = `${d.rank} dari ${dataSiswaGlobal.length}`;
-        document.getElementById('a1').innerText = (d.Alpha || 0) + " hari";
-        document.getElementById('a2').innerText = (d.Ijin || 0) + " hari";
-        document.getElementById('a3').innerText = (d.Sakit || 0) + " hari";
-        document.getElementById('outCatatan').innerText = d.Catatan || "-";
+        return `
+        <div class="rapor-page">
+            <div class="kop-container">
+                <div class="logo-box"><img src="${urlLogo}"></div>
+                <div class="kop-text">
+                    <h3>PEMERINTAH KABUPATEN MALANG</h3>
+                    <h3>DINAS PENDIDIKAN</h3>
+                    <h2>SMP NEGERI 2 KALIPARE</h2>
+                </div>
+            </div>
+            <div class="judul">LAPORAN HASIL BELAJAR MADRASAH DINIYAH</div>
+            <table class="info-table">
+                <tr><td width="15%">Nama</td><td>: <b>${d.Nama_Siswa}</b></td><td width="15%">Semester</td><td>: Ganjil</td></tr>
+                <tr><td>Kelas</td><td>: ${d.Kelas}</td><td>Tahun</td><td>: 2025/2026</td></tr>
+            </table>
+            <table class="main-table">
+                <thead><tr><th>NO</th><th>MATA PELAJARAN</th><th>NILAI</th><th>CAPAIAN KOMPETENSI</th></tr></thead>
+                <tbody>
+                    <tr><td align="center">1</td><td>FIQIH</td><td align="center">${d.Fiqih}</td><td>${genKompetensi(d.Fiqih, 'Fiqih')}</td></tr>
+                    <tr><td align="center">2</td><td>AQIDAH AKHLAQ</td><td align="center">${d.Aqidah}</td><td>${genKompetensi(d.Aqidah, 'Aqidah')}</td></tr>
+                    <tr><td align="center">3</td><td>BTQ</td><td align="center">${d.BTQ}</td><td>${genKompetensi(d.BTQ, 'BTQ')}</td></tr>
+                    <tr><td align="center">4</td><td>TAJWID</td><td align="center">${d.Tajwid}</td><td>${genKompetensi(d.Tajwid, 'Tajwid')}</td></tr>
+                    <tr><td colspan="2" align="right"><b>JUMLAH</b></td><td align="center"><b>${d.total}</b></td><td style="font-size:9pt; font-style:italic">${terbilang(d.total)}</td></tr>
+                    <tr><td colspan="2" align="right"><b>RATA-RATA</b></td><td align="center"><b>${rata}</b></td><td style="font-size:9pt; font-style:italic">${terbilang(rata)}</td></tr>
+                    <tr><td colspan="2" align="right"><b>PERINGKAT</b></td><td align="center"><b>${d.rank}</b></td><td align="center">Dari ${dataSiswaGlobal.length} Siswa</td></tr>
+                </tbody>
+            </table>
+            <div style="display:flex; gap:10px">
+                <table class="main-table" style="width:40%">
+                    <tr><th>Absensi</th><th>Hari</th></tr>
+                    <tr><td>Alpha</td><td align="center">${d.Alpha || 0}</td></tr>
+                    <tr><td>Izin</td><td align="center">${d.Ijin || 0}</td></tr>
+                    <tr><td>Sakit</td><td align="center">${d.Sakit || 0}</td></tr>
+                </table>
+                <table class="main-table" style="width:60%">
+                    <tr><th>Catatan Wali Kelas</th></tr>
+                    <tr><td style="height:60px; vertical-align:top">${d.Catatan || '-'}</td></tr>
+                </table>
+            </div>
+            <table class="footer-table">
+                <tr>
+                    <td width="33%">Wali Murid<br><br><br>(................)</td>
+                    <td width="33%">Wali Kelas<br><br><br><b>( ${d.Wali_Kelas} )</b></td>
+                    <td>Kalipare, 19 Des 2025<br>Kepala Sekolah<br><br><b>ELISABET DWI BUDIATI, S.Pd</b></td>
+                </tr>
+            </table>
+        </div>`;
+    }
+
+    function tampilkanSemuaSiswa() {
+        const area = document.getElementById('printArea');
+        area.innerHTML = dataSiswaGlobal.map(s => buatHTMLRapor(s)).join('');
+        updateStyles();
+    }
+
+    function tampilkanSatuSiswa(index) {
+        if(index === "ALL") { tampilkanSemuaSiswa(); return; }
+        const area = document.getElementById('printArea');
+        area.innerHTML = buatHTMLRapor(dataSiswaGlobal[index]);
+        updateStyles();
     }
 </script>
 </body>
