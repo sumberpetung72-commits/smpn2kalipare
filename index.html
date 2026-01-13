@@ -25,12 +25,13 @@
         .btn { flex: 1; padding: 12px; cursor: pointer; border: none; border-radius: 6px; font-weight: bold; color: white; transition: 0.3s; font-size: 13px; text-align: center; }
         .btn-excel { background-color: #1D6F42; }
         .btn-upload { background-color: #007bff; }
+        .btn-logo { background-color: #6f42c1; }
         .btn-print { background-color: #333; }
 
         /* Tampilan Halaman Rapor */
         .rapor-page { 
-            width: 210mm; /* Lebar standar A4 & F4 */
-            min-height: 297mm; /* Default A4 */
+            width: 210mm; 
+            min-height: 297mm; 
             margin: 10px auto; background: white; 
             box-sizing: border-box; box-shadow: 0 0 10px rgba(0,0,0,0.2);
             padding: 15mm 15mm 15mm 20mm; position: relative; overflow: hidden;
@@ -83,17 +84,19 @@
             </div>
         </div>
         <div class="config-box">
-            <strong>👤 Manajemen Data & Navigasi</strong>
+            <strong>👤 Manajemen Data & Logo</strong>
             <label>Pilih Nama Siswa:</label>
             <select id="selectSiswa" onchange="pilihSiswa(this.value)">
                 <option value="">-- Unggah file Excel dahulu --</option>
             </select>
             <div class="btn-group">
-                <button class="btn btn-excel" onclick="unduhTemplate()">1. Unduh Templat</button>
+                <button class="btn btn-excel" onclick="unduhTemplate()">1. Templat</button>
                 <button class="btn btn-upload" onclick="document.getElementById('fileIn').click()">2. Unggah Excel</button>
-                <button class="btn btn-print" onclick="window.print()">3. Cetak Rapor</button>
+                <button class="btn btn-logo" onclick="document.getElementById('logoIn').click()">3. Ganti Logo</button>
+                <button class="btn btn-print" onclick="window.print()">4. Cetak</button>
             </div>
             <input type="file" id="fileIn" accept=".xlsx, .xls" style="display:none" onchange="prosesExcel(event)">
+            <input type="file" id="logoIn" accept="image/*" style="display:none" onchange="updateLogo(event)">
         </div>
     </div>
 </div>
@@ -185,6 +188,18 @@
 
 <script>
     let dataSiswaGlobal = [];
+
+    // Fungsi Update Logo
+    function updateLogo(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('imgLogo').src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
 
     function updatePaperSize() {
         const size = document.getElementById('paperSize').value;
