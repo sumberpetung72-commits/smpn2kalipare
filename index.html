@@ -27,11 +27,14 @@
         .btn-upload { background-color: #007bff; }
         .btn-print { background-color: #333; }
 
-        /* Tampilan Halaman Rapor (Kembali ke semula) */
+        /* Tampilan Halaman Rapor */
         .rapor-page { 
-            width: 210mm; min-height: 297mm; margin: 10px auto; background: white; 
+            width: 210mm; /* Lebar standar A4 & F4 */
+            min-height: 297mm; /* Default A4 */
+            margin: 10px auto; background: white; 
             box-sizing: border-box; box-shadow: 0 0 10px rgba(0,0,0,0.2);
             padding: 15mm 15mm 15mm 20mm; position: relative; overflow: hidden;
+            transition: all 0.3s ease;
         }
 
         .kop-container { display: flex; align-items: center; border-bottom: 3px double black; padding-bottom: 10px; margin-bottom: 15px; }
@@ -50,12 +53,13 @@
         
         .footer-table { width: 100%; margin-top: 20px; border: none; text-align: center; font-size: 11pt; }
         .footer-table td { vertical-align: top; }
-        .space-ttd { height: 95px; } /* Jarak tanda tangan yang sudah diperbaiki */
+        .space-ttd { height: 70px; } 
         
         @media print { 
+            @page { margin: 0; size: auto; }
             .no-print { display: none; } 
-            body { background: none; } 
-            .rapor-page { box-shadow: none; margin: 0; width: 100%; } 
+            body { background: none; margin: 0; } 
+            .rapor-page { box-shadow: none; margin: 0; width: 100%; page-break-after: always; } 
         }
     </style>
 </head>
@@ -65,12 +69,17 @@
     <h3>🚀 Sistem Administrasi Rapor Madin - SMPN 2 Kalipare</h3>
     <div class="control-grid">
         <div class="config-box">
-            <strong>📏 Pengaturan Margin (mm)</strong>
-            <div class="margin-inputs">
-                <div><label>Atas</label><input type="number" id="mTop" value="15" oninput="updateMargins()"></div>
-                <div><label>Bawah</label><input type="number" id="mBottom" value="15" oninput="updateMargins()"></div>
-                <div><label>Kiri</label><input type="number" id="mLeft" value="20" oninput="updateMargins()"></div>
-                <div><label>Kanan</label><input type="number" id="mRight" value="15" oninput="updateMargins()"></div>
+            <strong>📏 Pengaturan Halaman</strong>
+            <label>Ukuran Kertas:</label>
+            <select id="paperSize" onchange="updatePaperSize()">
+                <option value="a4">A4 (210 x 297 mm)</option>
+                <option value="f4">F4 / Folio (210 x 330 mm)</option>
+            </select>
+            <div class="margin-inputs" style="margin-top: 10px;">
+                <div><label>Atas (mm)</label><input type="number" id="mTop" value="15" oninput="updateMargins()"></div>
+                <div><label>Bawah (mm)</label><input type="number" id="mBottom" value="15" oninput="updateMargins()"></div>
+                <div><label>Kiri (mm)</label><input type="number" id="mLeft" value="20" oninput="updateMargins()"></div>
+                <div><label>Kanan (mm)</label><input type="number" id="mRight" value="15" oninput="updateMargins()"></div>
             </div>
         </div>
         <div class="config-box">
@@ -177,6 +186,23 @@
 <script>
     let dataSiswaGlobal = [];
 
+    function updatePaperSize() {
+        const size = document.getElementById('paperSize').value;
+        const container = document.getElementById('raporContainer');
+        if (size === 'a4') {
+            container.style.minHeight = '297mm';
+        } else {
+            container.style.minHeight = '330mm';
+        }
+    }
+
+    function updateMargins() {
+        const t = document.getElementById('mTop').value, b = document.getElementById('mBottom').value,
+              l = document.getElementById('mLeft').value, r = document.getElementById('mRight').value;
+        const page = document.getElementById('raporContainer');
+        page.style.padding = `${t}mm ${r}mm ${b}mm ${l}mm`;
+    }
+
     function unduhTemplate() {
         const columns = ["Nama_Siswa", "Kelas", "Wali_Kelas", "Fiqih", "Aqidah", "BTQ", "Tajwid", "Alpha", "Ijin", "Sakit", "Catatan"];
         const ws = XLSX.utils.aoa_to_sheet([["DATA RAPOR MADIN"], [], [], columns, ["Contoh Nama", "7-A", "Wali Kelas", 90, 85, 88, 82, 0, 0, 0, "Pertahankan prestasimu!"]]);
@@ -213,13 +239,6 @@
         return `Perlu bimbingan intensif untuk mencapai kompetensi dasar pada materi ${m}.`;
     }
 
-    function updateMargins() {
-        const t = document.getElementById('mTop').value, b = document.getElementById('mBottom').value,
-              l = document.getElementById('mLeft').value, r = document.getElementById('mRight').value;
-        const page = document.getElementById('raporContainer');
-        page.style.padding = `${t}mm ${r}mm ${b}mm ${l}mm`;
-    }
-
     function prosesExcel(e) {
         const reader = new FileReader();
         reader.onload = (event) => {
@@ -241,6 +260,7 @@
     function pilihSiswa(i) { if(i !== "") isiData(dataSiswaGlobal[i]); }
 
     function isiData(d) {
+        if(!d) return;
         document.getElementById('outNama').innerText = d.Nama_Siswa;
         document.getElementById('outKelas').innerText = d.Kelas;
         document.getElementById('outWali').innerText = `( ${d.Wali_Kelas} )`;
