@@ -7,10 +7,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Times New Roman', Times, serif; margin: 0; background-color: #f0f2f5; color: #333; }
-        .no-print { max-width: 1100px; margin: 20px auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); border-top: 5px solid #007bff; }
+        .no-print { max-width: 1100px; margin: 20px auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); border-top: 5px solid #28a745; }
         .control-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
         .config-box { background: #fdfdfd; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; }
-        .config-box strong { display: block; margin-bottom: 10px; color: #007bff; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .config-box strong { display: block; margin-bottom: 10px; color: #28a745; border-bottom: 1px solid #eee; padding-bottom: 5px; }
         .margin-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .margin-inputs label { font-size: 11px; font-weight: bold; }
         .config-box input, .config-box select { width: 100%; padding: 8px; margin-bottom: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
@@ -40,8 +40,8 @@
         .judul { text-align: center; margin-bottom: 15px; font-size: 14pt; font-weight: bold; text-decoration: underline; }
         .info-table { width: 100%; border: none; margin-bottom: 10px; font-size: 11pt; }
         .main-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; table-layout: fixed; }
-        .main-table th, .main-table td { border: 1px solid black; padding: 6px 8px; font-size: 10pt; word-wrap: break-word; }
-        .main-table th { background-color: #f2f2f2; height: 35px; }
+        .main-table th, .main-table td { border: 1px solid black; padding: 8px; font-size: 10pt; word-wrap: break-word; vertical-align: middle; }
+        .main-table th { background-color: #f2f2f2; height: 35px; text-transform: uppercase; }
         
         .footer-table { width: 100%; margin-top: 20px; border: none; text-align: center; font-size: 11pt; }
         
@@ -51,10 +51,10 @@
 <body>
 
 <div class="no-print">
-    <h3>🚀 Sistem Administrasi Rapor Madin SMPN 2 Kalipare</h3>
+    <h3>🚀 Sistem Administrasi Rapor Madin - SMPN 2 Kalipare</h3>
     <div class="control-grid">
         <div class="config-box">
-            <strong>📏 Konfigurasi Tata Letak (Margin mm)</strong>
+            <strong>📏 Pengaturan Margin (mm)</strong>
             <div class="margin-inputs">
                 <div><label>Atas</label><input type="number" id="mTop" value="15" oninput="updateMargins()"></div>
                 <div><label>Bawah</label><input type="number" id="mBottom" value="15" oninput="updateMargins()"></div>
@@ -63,15 +63,15 @@
             </div>
         </div>
         <div class="config-box">
-            <strong>👤 Navigasi & Data Siswa</strong>
+            <strong>👤 Manajemen Data & Navigasi</strong>
             <label>Pilih Nama Siswa:</label>
             <select id="selectSiswa" onchange="pilihSiswa(this.value)">
-                <option value="">-- Unggah file Excel terlebih dahulu --</option>
+                <option value="">-- Unggah file Excel dahulu --</option>
             </select>
             <div class="btn-group">
                 <button class="btn btn-excel" onclick="unduhTemplate()">1. Unduh Templat</button>
                 <button class="btn btn-logo" onclick="document.getElementById('logoIn').click()">2. Ganti Logo</button>
-                <button class="btn btn-upload" onclick="document.getElementById('fileIn').click()">3. Unggah Data</button>
+                <button class="btn btn-upload" onclick="document.getElementById('fileIn').click()">3. Unggah Excel</button>
                 <button class="btn btn-print" onclick="window.print()">4. Cetak Rapor</button>
             </div>
             <input type="file" id="logoIn" accept="image/*" style="display:none" onchange="prosesLogo(event)">
@@ -112,7 +112,7 @@
                 <th width="7%">NO</th>
                 <th width="30%">MATA PELAJARAN</th>
                 <th width="13%">NILAI</th>
-                <th width="50%">CAPAIAN DESKRIPSI</th>
+                <th width="50%">CAPAIAN KOMPETENSI</th>
             </tr>
         </thead>
         <tbody>
@@ -149,7 +149,7 @@
         </table>
         <table class="main-table" style="width: 60%;">
             <thead><tr><th>Catatan Wali Kelas</th></tr></thead>
-            <tbody><tr><td id="outCatatan" style="height: 80px; vertical-align: top; font-size: 10pt;">-</td></tr></tbody>
+            <tbody><tr><td id="outCatatan" style="height: 85px; vertical-align: top; font-size: 10pt;">-</td></tr></tbody>
         </table>
     </div>
 
@@ -165,25 +165,23 @@
 <script>
     let dataSiswaGlobal = [];
 
-    // 1. FUNGSI UNDUH TEMPLAT (Lengkap dengan instruksi)
+    // FUNGSI UNDUH TEMPLAT
     function unduhTemplate() {
-        const header = [["DATA NILAI SISWA MADIN - SMPN 2 KALIPARE"], ["Jangan mengubah urutan kolom di baris ke-3"], []];
         const columns = ["Nama_Siswa", "Kelas", "Wali_Kelas", "Fiqih", "Aqidah", "BTQ", "Tajwid", "Alpha", "Ijin", "Sakit", "Catatan"];
-        const sample1 = ["Ahmad Fauzi", "7-A", "Budi Susanto, S.Pd", 92, 88, 85, 90, 0, 0, 1, "Sangat membanggakan, pertahankan!"];
-        const sample2 = ["Siti Aminah", "7-A", "Budi Susanto, S.Pd", 75, 80, 70, 78, 1, 2, 0, "Terus belajar lebih giat lagi."];
-        const sample3 = ["Rizky Pratama", "7-A", "Budi Susanto, S.Pd", 85, 85, 85, 85, 0, 0, 0, "Konsisten dan disiplin."];
-
-        const ws = XLSX.utils.aoa_to_sheet([...header, columns, sample1, sample2, sample3]);
+        const data = [
+            ["PENGISIAN DATA RAPOR MADIN"],
+            ["Jangan mengubah kolom di baris ke-3"],
+            [],
+            columns,
+            ["Contoh Nama Siswa", "7-A", "Wali Kelas, S.Pd", 90, 85, 88, 82, 0, 0, 0, "Pertahankan prestasimu!"]
+        ];
+        const ws = XLSX.utils.aoa_to_sheet(data);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Data_Rapor");
-        
-        // Atur lebar kolom agar rapi saat dibuka
-        ws['!cols'] = [{wch:25}, {wch:10}, {wch:25}, {wch:8}, {wch:8}, {wch:8}, {wch:8}, {wch:8}, {wch:8}, {wch:8}, {wch:40}];
-        
+        XLSX.utils.book_append_sheet(wb, ws, "Data");
         XLSX.writeFile(wb, "Templat_Rapor_Madin_SMPN2.xlsx");
     }
 
-    // 2. FUNGSI TERBILANG
+    // FUNGSI TERBILANG
     function terbilang(n) {
         const bilangan = ["", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas"];
         let temp = ""; n = parseFloat(n);
@@ -205,16 +203,16 @@
         return temp.trim() + " Poin";
     }
 
-    // 3. LOGIKA DESKRIPSI
-    function genDesc(v, m) {
+    // FUNGSI CAPAIAN KOMPETENSI
+    function genKompetensi(v, m) {
         if (!v) return "-";
-        if (v >= 90) return `Sangat Baik. Peserta didik menunjukkan penguasaan mendalam pada materi ${m} dan mampu menjadi tutor sebaya.`;
-        if (v >= 80) return `Baik. Sudah mampu menguasai kompetensi ${m} dengan hasil memuaskan, namun ketelitian pada rincian kecil perlu ditingkatkan.`;
-        if (v >= 70) return `Cukup. Memiliki pemahaman dasar pada ${m}, namun kemampuan praktik belum tercapai secara maksimal.`;
-        return `Perlu bimbingan intensif dan latihan rutin pada materi ${m}.`;
+        if (v >= 90) return `Sangat Baik. Peserta didik menunjukkan penguasaan sangat mendalam pada kompetensi materi ${m}. Perlu tantangan lebih lanjut.`;
+        if (v >= 80) return `Baik. Sudah menguasai sebagian besar kompetensi ${m} dengan memuaskan, namun perlu ketelitian pada detail materi.`;
+        if (v >= 70) return `Cukup. Memiliki pemahaman kompetensi dasar pada ${m}, namun aplikasi praktik belum tercapai secara maksimal.`;
+        return `Perlu bimbingan intensif untuk mencapai kompetensi dasar pada materi ${m}.`;
     }
 
-    // 4. KONTROL INTERFACE
+    // LOGIKA UI
     function updateMargins() {
         const t = document.getElementById('mTop').value, b = document.getElementById('mBottom').value,
               l = document.getElementById('mLeft').value, r = document.getElementById('mRight').value;
@@ -239,10 +237,10 @@
             });
             const sorted = [...json].sort((a, b) => b.total - a.total);
             dataSiswaGlobal = json.map(s => ({ ...s, rank: sorted.findIndex(x => x.total === s.total) + 1 }));
-            
             const sel = document.getElementById('selectSiswa');
             sel.innerHTML = dataSiswaGlobal.map((s, i) => `<option value="${i}">${s.Nama_Siswa}</option>`).join('');
             isiData(dataSiswaGlobal[0]);
+            alert("Data berhasil dimuat!");
         };
         reader.readAsArrayBuffer(e.target.files[0]);
     }
@@ -257,7 +255,7 @@
         const names = ["Fiqih", "Aqidah Akhlaq", "BTQ", "Tajwid"];
         n.forEach((v, i) => {
             document.getElementById(`n${i+1}`).innerText = v || 0;
-            document.getElementById(`d${i+1}`).innerText = genDesc(v, names[i]);
+            document.getElementById(`d${i+1}`).innerText = genKompetensi(v, names[i]);
         });
         const rata = (d.total / 4).toFixed(2);
         document.getElementById('outTotal').innerText = d.total;
